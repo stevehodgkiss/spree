@@ -1,0 +1,38 @@
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:test, :cucumber, :development, :test_rails_app)
+
+desc "Default Task"
+task :default => [ :spec ]
+
+require 'rspec'
+require 'rspec/core/rake_task'
+RSpec::Core::RakeTask.new
+
+require 'cucumber/rake/task'
+Cucumber::Rake::Task.new do |t|
+  t.cucumber_opts = %w{--format pretty}
+end
+
+desc "Regenerates a rails 3 app for testing"
+task :regenerate_test_app do
+  require 'test_helpers/test_app/test_app_generator'
+  class AuthTestAppGenerator < TestAppGenerator
+    def install_auth
+      inside "" do
+        run "rails generate spree_auth:install --force"
+      end
+    end
+
+    def migrate_db
+      run_migrations
+    end
+  end
+  AuthTestAppGenerator.start
+end
+
+namespace :test_app do
+  task :rebuild_dbs do
+    system("cd spec/test_app && rake db:drop db:migrate RAILS_ENV=test && rake db:drop db:migrate RAILS_ENV=cucumber")
+  end
+end

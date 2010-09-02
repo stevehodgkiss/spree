@@ -1,0 +1,27 @@
+require 'rubygems'
+require 'rake'
+
+desc "Default Task"
+task :default => [ :spec ]
+
+require 'rspec/core/rake_task'
+RSpec::Core::RakeTask.new
+
+desc "Regenerates a rails 3 app for testing"
+task :regenerate_test_app do
+  require 'lib/test_helpers/test_app_generator/test_app_generator'
+  class CoreTestAppGenerator < TestAppGenerator
+    def migrate_db
+      run_migrations
+    end
+  end
+  CoreTestAppGenerator.start
+end
+
+namespace :test_app do
+  namespace :db do
+    task :rebuild do
+      system("cd spec/test_app && rake db:drop db:migrate RAILS_ENV=test && rake db:drop db:migrate RAILS_ENV=cucumber")
+    end
+  end
+end
