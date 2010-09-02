@@ -32,6 +32,7 @@ task :regenerate_test_app do
 end
 
 namespace :test_app do
+  desc 'Rebuild test and cucumber databases'
   task :rebuild_dbs do
     system("cd spec/test_app && rake db:drop db:migrate RAILS_ENV=test && rake db:drop db:migrate RAILS_ENV=cucumber")
   end

@@ -7,10 +7,21 @@ task :default => [ :spec ]
 require 'rspec/core/rake_task'
 RSpec::Core::RakeTask.new
 
+require 'cucumber/rake/task'
+Cucumber::Rake::Task.new do |t|
+  t.cucumber_opts = %w{--format pretty}
+end
+
 desc "Regenerates a rails 3 app for testing"
 task :regenerate_test_app do
-  require 'lib/test_helpers/test_app_generator/test_app_generator'
+  require 'lib/test_helpers/test_app/test_app_generator'
   class CoreTestAppGenerator < TestAppGenerator
+    def install_auth
+      inside "" do
+        run "rails generate spree_auth:install --force"
+      end
+    end
+    
     def migrate_db
       run_migrations
     end
@@ -19,9 +30,8 @@ task :regenerate_test_app do
 end
 
 namespace :test_app do
-  namespace :db do
-    task :rebuild do
-      system("cd spec/test_app && rake db:drop db:migrate RAILS_ENV=test && rake db:drop db:migrate RAILS_ENV=cucumber")
-    end
+  desc 'Rebuild test and cucumber databases'
+  task :rebuild_dbs do
+    system("cd spec/test_app && rake db:drop db:migrate RAILS_ENV=test && rake db:drop db:migrate RAILS_ENV=cucumber")
   end
 end
